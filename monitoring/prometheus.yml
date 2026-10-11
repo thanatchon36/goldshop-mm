@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: goldshop
+    static_configs:
+      - targets: ["goldshop:8080"]   # compose service name; /metrics on the ops port

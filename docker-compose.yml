@@ -1,0 +1,67 @@
+services:
+  goldshop:
+    build: .
+    image: goldshop-mm:latest
+    container_name: goldshop-mm
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false          # paper mode runs without any .env
+    read_only: true              # only the data volume (and /tmp) are writable
+    tmpfs:
+      - /tmp
+    volumes:
+      - ./data:/app/data         # Parquet recordings (later: SQLite state)
+      - ./config.yaml:/app/config.yaml:ro   # edit config without rebuilding
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 30s       # time to flush/cancel on SIGTERM
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=4).status == 200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    logging:                     # JSON logs on stdout, rotated by Docker
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  # ---- optional monitoring: docker compose --profile monitoring up -d -------------
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    profiles: [monitoring]
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=30d
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"    # localhost only
+    depends_on: [goldshop]
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    profiles: [monitoring]
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}   # set it in .env
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/goldshop.json
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3000:3000"    # localhost only; use an SSH tunnel to view remotely
+    depends_on: [prometheus]
+
+volumes:
+  prometheus-data:
+  grafana-data:

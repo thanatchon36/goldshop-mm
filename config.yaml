@@ -1,0 +1,91 @@
+# goldshop-mm configuration (non-secret). Secrets go in env / .env / Docker secrets only.
+
+# Pick with `python -m goldshop.screener`. Never changed automatically while running.
+symbol: BTCUSDT
+
+exchange:
+  # live (paper also reads live public market data)
+  rest_base_url: https://fapi.binance.com
+  ws_public_url: wss://fstream.binance.com/public/stream   # bookTicker + depth
+  ws_market_url: wss://fstream.binance.com/market/stream   # aggTrade + markPrice
+  ws_private_url: wss://fstream.binance.com/private/ws     # user data stream
+  # testnet (MODE=testnet uses only these)
+  testnet_rest_base_url: https://demo-fapi.binance.com
+  testnet_ws_public_url: wss://fstream.binancefuture.com/public/stream
+  testnet_ws_market_url: wss://fstream.binancefuture.com/market/stream
+  testnet_ws_private_url: wss://fstream.binancefuture.com/private/ws
+  maker_fee_bps: 2.0          # VIP0 maker 0.02%
+  taker_fee_bps: 5.0          # used for simulated flatten in paper mode
+  request_timeout_s: 10
+  weight_backoff_ratio: 0.8   # pause when weight / order count > 80% of the limit
+  recv_window_ms: 5000
+  time_sync_interval_s: 300   # resync with Binance server time
+
+market_data:
+  depth_levels: 20            # partial book: 5 / 10 / 20
+  depth_speed_ms: 100         # 100 / 250 / 500
+  stale_after_s: 5            # no updates for this long => stale (stop quoting)
+  reconnect_backoff_initial_s: 1
+  reconnect_backoff_max_s: 60
+
+recorder:
+  enabled: true
+  data_dir: data/recordings   # Parquet, one file per stream per UTC hour
+  flush_interval_s: 10
+
+screener:
+  min_quote_volume_usdt: 50000000   # filter before fetching klines
+  kline_minutes: 60                 # σ window (1m klines)
+  top_n: 20
+  max_concurrency: 5
+
+strategy:                     # Avellaneda–Stoikov, all in bps
+  gamma: 0.05                 # risk aversion → inventory skew of reservation price
+  kappa: 0.5                  # order-arrival decay per bps → base spread ≈ 2/κ
+  horizon_s: 60               # τ (fixed horizon, 24/7 market)
+  vol_halflife_s: 120         # EWMA σ of 1s mid returns
+  vol_warmup_s: 60            # don't quote until σ is warmed up
+  min_spread_buffer_bps: 1.0  # quoted spread ≥ 2×maker_fee + buffer
+  order_notional_usdt: 100    # per side; must satisfy exchange minQty/minNotional
+  max_inventory_notional_usdt: 500   # at limit → quote only the reducing side
+  requote_threshold_bps: 0.5  # replace an order only if target moved more than this
+  requote_min_interval_ms: 250
+
+paper:
+  latency_ms: 100             # decision → exchange, for new orders and cancels
+
+report:
+  interval_s: 3600            # Telegram report every hour (aligned to the clock)
+  daily_summary: true         # plus a daily summary at 00:00 UTC
+
+notify:
+  queue_size: 100
+  min_interval_s: 1.0         # ~1 Telegram message per second
+  max_retries: 5
+  reconnect_alert_count: 5    # alert if more than this many reconnects in 10 minutes
+
+risk:                         # hard limits — override strategy and Telegram commands
+  max_position_notional_usdt: 600
+  max_order_notional_usdt: 200
+  daily_loss_limit_usdt: 20   # net PnL today ≤ −20 → cancel all, flatten (reduce-only), halt until 00:00 UTC
+  circuit_breaker_pct: 0.5    # price moves ≥ 0.5% ...
+  circuit_breaker_window_s: 10   # ... within 10 s → stop quoting
+  circuit_breaker_cooldown_s: 60
+  funding_guard_rate: 0.0005  # funding ≥ 0.05% against our position → quote only the reducing side
+  dead_man_countdown_s: 60    # countdownCancelAll: exchange cancels everything if we go silent
+  dead_man_refresh_s: 15
+  leverage: 2
+  margin_type: ISOLATED
+  position_check_interval_s: 30
+
+state:
+  db_dir: data                # SQLite per mode: data/state-paper.sqlite, state-testnet.sqlite, ...
+  flush_interval_s: 2
+  pnl_snapshot_interval_s: 60
+
+ops:
+  health_enabled: true
+  health_port: 8080           # GET /health → 200 fresh / 503 stale
+
+logging:
+  level: INFO
