@@ -54,7 +54,7 @@ def ex(btc_filters):
     return e
 
 
-def otu(cid, x, X, side="BUY", l="0", L="0", z="0", n="0", N="USDT", T=1):
+def otu(cid, x, X, side="BUY", l="0", L="0", z="0", n="0", N="USDT", T=1):  # noqa: E741 (Binance field names)
     return {"e": "ORDER_TRADE_UPDATE", "E": T, "o": {"s": "BTCUSDT", "c": cid, "S": side, "x": x,
             "X": X, "l": l, "L": L, "z": z, "n": n, "N": N, "T": T}}
 

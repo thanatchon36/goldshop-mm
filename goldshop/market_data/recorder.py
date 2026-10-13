@@ -17,7 +17,7 @@ from typing import Any
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from goldshop.market_data.models import BookTicker, Depth, MarketEvent, MarkPrice, Trade
+from goldshop.market_data.models import BookTicker, Depth, MarketEvent, Trade
 
 log = logging.getLogger(__name__)
 
