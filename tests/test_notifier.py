@@ -1,6 +1,5 @@
 import asyncio
 
-import pytest
 from pydantic import SecretStr
 
 from goldshop.config import NotifyConfig, TelegramSettings

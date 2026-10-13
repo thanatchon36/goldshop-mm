@@ -1,5 +1,14 @@
 # goldshop-mm
 
+[![CI](https://github.com/thanatchon36/goldshop-mm/actions/workflows/ci.yml/badge.svg)](https://github.com/thanatchon36/goldshop-mm/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+![Docker](https://img.shields.io/badge/docker-compose-2496ED?logo=docker&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
+*Single-symbol Avellaneda–Stoikov market maker for Binance USDⓈ-M futures: post-only quotes, inventory control,
+a strict paper fill engine, Telegram reports and Prometheus/Grafana monitoring.*
+
 Market-making bot สำหรับ **Binance USDⓈ-M Futures** — แนวคิดแบบ "ร้านทอง": ตั้ง limit order ทั้งฝั่ง bid และ ask
 เพื่อกินสเปรด โดยคุม inventory ไม่ให้สะสมฝั่งใดฝั่งหนึ่งมากเกินไป รันใน container แบบ 24/7
 และส่งรายงานผลประกอบการ + แจ้งเตือนไปที่ Telegram
@@ -24,6 +33,8 @@ Market-making bot สำหรับ **Binance USDⓈ-M Futures** — แนว�
 10. [✅ Checklist ก่อนเปิด live](#10--checklist-ก่อนเปิด-live)
 11. [โครงสร้างโปรเจกต์](#11-โครงสร้างโปรเจกต์)
 12. [ข้อจำกัดที่รู้อยู่](#12-ข้อจำกัดที่รู้อยู่)
+13. [Roadmap](#13-roadmap)
+14. [License และคำเตือน](#14-license-และคำเตือน)
 
 ---
 
@@ -430,3 +441,19 @@ tests/                  pytest (strategy, risk, fill engine, order state machine
 - รองรับ symbol เดียวต่อ process และเฉพาะ One-way Mode
 - fee ที่จ่ายเป็น BNB ถูกประเมินเป็น USDT จากอัตรา maker ใน config
 - ไฟล์ Parquet ของชั่วโมงปัจจุบันอ่านไม่ได้จนกว่าจะปิดไฟล์ (backtest ข้ามให้อัตโนมัติ)
+
+---
+
+## 13. Roadmap
+
+งานที่เหลือติดตามใน [issues](https://github.com/thanatchon36/goldshop-mm/issues) และ milestone
+[Go-live](https://github.com/thanatchon36/goldshop-mm/milestones):
+
+- พิสูจน์กำไรหลัง fee ใน paper 1–2 สัปดาห์ (checklist A) และทดสอบกลไกบน testnet (checklist B)
+- เตรียมบัญชี/คีย์ live และค่าเริ่มต้นสัปดาห์แรก (checklist C, D)
+- ปิดข้อจำกัดใน [หัวข้อ 12](#12-ข้อจำกัดที่รู้อยู่): flatten ที่ลึกกว่า L1 ใน paper, fee BNB, หลาย symbol ต่อ process
+
+## 14. License และคำเตือน
+
+[MIT](LICENSE) — ใช้ตามสภาพ ไม่มีการรับประกันใดๆ โปรเจกต์นี้ไม่ใช่คำแนะนำการลงทุน และผู้เขียนไม่รับผิดชอบต่อความเสียหายจากการใช้งาน
+พบช่องโหว่ที่อาจทำให้คีย์หลุดหรือส่ง order โดยไม่ตั้งใจ แจ้งแบบส่วนตัวตาม [SECURITY.md](SECURITY.md)

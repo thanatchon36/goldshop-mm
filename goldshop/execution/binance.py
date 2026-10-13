@@ -14,6 +14,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import math
 import time
 from collections.abc import AsyncIterator
 from typing import Any
@@ -52,7 +53,7 @@ class BinanceExecutor:
         self._handlers: list[ExecHandler] = []
         self._funding_rate = 0.0
         self._mark = 0.0
-        self._last_margin_alert = 0.0
+        self._last_margin_alert = -math.inf  # monotonic() starts near 0 after boot
         self._warned_fee_asset = False
         self.position_qty = 0.0  # last value seen on the exchange (ACCOUNT_UPDATE / positionRisk)
         self.on_latency: Any = None  # (op, seconds) → metrics

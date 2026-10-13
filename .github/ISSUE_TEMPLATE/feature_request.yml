@@ -1,0 +1,24 @@
+name: Feature / strategy change
+description: Propose a new capability or a change to quoting, risk or execution
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is missing or wrong today, with evidence (fills, markout, PnL after fees) if you have it.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+    validations:
+      required: true
+  - type: textarea
+    id: risk
+    attributes:
+      label: Risk impact
+      description: Can this increase position, order count or loss? Which risk-manager check bounds it?
+    validations:
+      required: true

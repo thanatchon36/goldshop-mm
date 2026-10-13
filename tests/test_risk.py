@@ -1,4 +1,3 @@
-import pytest
 
 from goldshop.config import RiskConfig
 from goldshop.execution.orders import Side
